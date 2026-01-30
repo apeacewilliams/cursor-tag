@@ -14,7 +14,7 @@ export interface GameState {
   players: Player[];
   whoIsIt: string;
   timeRemaining: number;
-  status: 'waiting' | 'countdown' | 'playing' | 'ended';
+  status: "waiting" | "countdown" | "playing" | "ended";
 }
 
 export interface RoomInfo {
@@ -28,9 +28,9 @@ export interface RoomInfo {
 // ============================================
 
 export type ClientMessage =
-  | { type: 'join'; payload: JoinPayload }
-  | { type: 'input'; payload: InputPayload }
-  | { type: 'rematch'; payload: Record<string, never> };
+  | { type: "join"; payload: JoinPayload }
+  | { type: "input"; payload: InputPayload }
+  | { type: "rematch"; payload: Record<string, never> };
 
 export interface JoinPayload {
   name?: string;
@@ -47,14 +47,14 @@ export interface InputPayload {
 // ============================================
 
 export type ServerMessage =
-  | { type: 'init'; payload: InitPayload }
-  | { type: 'state'; payload: StatePayload }
-  | { type: 'tag'; payload: TagPayload }
-  | { type: 'player_joined'; payload: PlayerJoinedPayload }
-  | { type: 'player_left'; payload: PlayerLeftPayload }
-  | { type: 'countdown'; payload: CountdownPayload }
-  | { type: 'game_over'; payload: GameOverPayload }
-  | { type: 'error'; payload: ErrorPayload };
+  | { type: "init"; payload: InitPayload }
+  | { type: "state"; payload: StatePayload }
+  | { type: "tag"; payload: TagPayload }
+  | { type: "player_joined"; payload: PlayerJoinedPayload }
+  | { type: "player_left"; payload: PlayerLeftPayload }
+  | { type: "countdown"; payload: CountdownPayload }
+  | { type: "game_over"; payload: GameOverPayload }
+  | { type: "error"; payload: ErrorPayload };
 
 export interface InitPayload {
   playerId: string;
@@ -63,7 +63,7 @@ export interface InitPayload {
   arenaHeight: number;
   players: Player[];
   whoIsIt: string | null;
-  status: GameState['status'];
+  status: GameState["status"];
 }
 
 export interface StatePayload {
@@ -105,18 +105,18 @@ export interface ErrorPayload {
 // ============================================
 
 export const CLIENT_MESSAGES = {
-  JOIN: 'join',
-  INPUT: 'input',
-  REMATCH: 'rematch',
+  JOIN: "join",
+  INPUT: "input",
+  REMATCH: "rematch",
 } as const;
 
 export const SERVER_MESSAGES = {
-  INIT: 'init',
-  STATE: 'state',
-  TAG: 'tag',
-  PLAYER_JOINED: 'player_joined',
-  PLAYER_LEFT: 'player_left',
-  COUNTDOWN: 'countdown',
-  GAME_OVER: 'game_over',
-  ERROR: 'error',
+  INIT: "init",
+  STATE: "state",
+  TAG: "tag",
+  PLAYER_JOINED: "player_joined",
+  PLAYER_LEFT: "player_left",
+  COUNTDOWN: "countdown",
+  GAME_OVER: "game_over",
+  ERROR: "error",
 } as const;

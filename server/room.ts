@@ -1,13 +1,17 @@
-import { GAME_CONFIG, GameState, Player, SERVER_MESSAGES } from '@cursor-tag/shared';
-import { WebSocket } from 'ws';
-
+import {
+  GAME_CONFIG,
+  GameState,
+  Player,
+  SERVER_MESSAGES,
+} from "@cursor-tag/shared";
+import { WebSocket } from "ws";
 
 export class Room {
   readonly roomCode: string;
   private players: Map<string, Player> = new Map();
   private sockets: Map<string, WebSocket> = new Map();
   private whoIsIt: string | null = null;
-  private status: GameState['status'] = 'waiting';
+  private status: GameState["status"] = "waiting";
   private timeRemaining: number = GAME_CONFIG.ROUND_DURATION;
 
   constructor(roomCode: string) {
@@ -45,7 +49,6 @@ export class Room {
     return GAME_CONFIG.ARENA_HEIGHT / 2;
   }
 
-
   removePlayer(id: string): void {
     this.players.delete(id);
     this.sockets.delete(id);
@@ -60,15 +63,13 @@ export class Room {
     }
   }
 
-
   broadcast(message: object): void {
     this.sockets.forEach((socket) => {
       if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(message))
+        socket.send(JSON.stringify(message));
       }
-    })
+    });
   }
-
 
   isFull(): boolean {
     return this.players.size === 2;
@@ -79,20 +80,55 @@ export class Room {
   }
 
   getPlayer(id: string): Player | undefined {
-    return this.players.get(id)
+    return this.players.get(id);
   }
 
   getAllPlayers(): Player[] {
-    return Array.from(this.players.values())
+    return Array.from(this.players.values());
   }
 
   updatePlayerPosition(id: string, x: number, y: number): void {
-   const player = this.players.get(id)
+    const player = this.players.get(id);
     if (!player) {
-      return
+      return;
     }
 
-    player.x = x
-    player.y = y
+    player.x = Math.max(0, Math.min(x, GAME_CONFIG.ARENA_WIDTH));
+    player.y = Math.max(0, Math.min(y, GAME_CONFIG.ARENA_HEIGHT));
+  }
+
+  getWhoIsIt(): string | null {
+    return this.whoIsIt;
+  }
+
+  getStatus(): GameState["status"] {
+    return this.status;
+  }
+
+  private gameLoopInterval: NodeJS.Timeout | null = null;
+
+  startGameLoop(): void {
+    this.gameLoopInterval = setInterval(() => {
+      this.tick();
+    }, 1000 / GAME_CONFIG.TICK_RATE);
+  }
+
+  stopGameLoop(): void {
+    if (this.gameLoopInterval) {
+      clearInterval(this.gameLoopInterval);
+      this.gameLoopInterval = null;
+    }
+  }
+
+  private tick(): void {
+    // todo: add collision detection
+    this.broadcast({
+      type: SERVER_MESSAGES.STATE,
+      payload: {
+        players: this.getAllPlayers(),
+        whoIsIt: this.whoIsIt!,
+        timeRemaining: this.timeRemaining,
+      },
+    });
   }
 }
