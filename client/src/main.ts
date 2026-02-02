@@ -1,20 +1,54 @@
-import { GAME_CONFIG } from "@cursor-tag/shared/config";
+import { Network } from "./network";
+import { Input } from "./input";
+import { Renderer } from "./canvas";
+import {
+  Player,
+  ServerMessage,
+  CLIENT_MESSAGES,
+} from "@cursor-tag/shared/types";
 
-const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d')!;
+let players: Player[] = [];
+let whoIsIt: string = "";
+let localPlayerId: string = "";
+let timeRemaining: number = 0;
 
-// Set canvas size
-canvas.width = GAME_CONFIG.ARENA_WIDTH;
-canvas.height = GAME_CONFIG.ARENA_HEIGHT;
+const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+const network = new Network();
+const input = new Input(network, canvas);
+const renderer = new Renderer(canvas);
 
-// Draw placeholder
-ctx.fillStyle = '#12121a';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+const params = new URLSearchParams(window.location.search);
+const roomCode = params.get("room");
 
-ctx.fillStyle = '#333';
-ctx.font = '16px Inter, sans-serif';
-ctx.textAlign = 'center';
-ctx.fillText('Connecting...', canvas.width / 2, canvas.height / 2);
+function gameLoop() {
+  renderer.render(players, whoIsIt, localPlayerId, timeRemaining);
+  requestAnimationFrame(gameLoop);
+}
 
-console.log('🎮 Cursor Tag client loaded');
-console.log(`   Arena: ${GAME_CONFIG.ARENA_WIDTH}x${GAME_CONFIG.ARENA_HEIGHT}`);
+async function renderGame() {
+  await network.connect("ws://localhost:3001");
+
+  network.send({
+    type: CLIENT_MESSAGES.JOIN,
+    payload: { roomCode: roomCode || undefined },
+  });
+}
+
+network.onMessage((message: ServerMessage) => {
+  if (message.type === "init") {
+    localPlayerId = message.payload.playerId;
+    players = message.payload.players;
+    whoIsIt = message.payload.whoIsIt || "";
+    console.log(`Room code: ${message.payload.roomCode}`);
+    input.start();
+  }
+
+  if (message.type === "state") {
+    players = message.payload.players;
+    whoIsIt = message.payload.whoIsIt || "";
+    timeRemaining = message.payload.timeRemaining;
+  }
+});
+
+gameLoop();
+renderGame();

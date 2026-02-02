@@ -1,4 +1,5 @@
 import {
+  COLLISION_DISTANCE_SQUARED,
   GAME_CONFIG,
   GameState,
   Player,
@@ -13,6 +14,13 @@ export class Room {
   private whoIsIt: string | null = null;
   private status: GameState["status"] = "waiting";
   private timeRemaining: number = GAME_CONFIG.ROUND_DURATION;
+  private lastTagTime: number = 0;
+  private checkCollision(player1: Player, player2: Player): boolean {
+    const distanceSquared =
+      (player2.x - player1.x) ** 2 + (player2.y - player1.y) ** 2;
+
+    return distanceSquared < COLLISION_DISTANCE_SQUARED;
+  }
 
   constructor(roomCode: string) {
     this.roomCode = roomCode;
@@ -121,7 +129,70 @@ export class Room {
   }
 
   private tick(): void {
-    // todo: add collision detection
+    if (this.players.size === 2 && this.whoIsIt) {
+      this.timeRemaining -= 1 / GAME_CONFIG.TICK_RATE;
+
+      if (this.timeRemaining <= 0) {
+        this.timeRemaining = 0;
+        this.status = "ended";
+
+        const finalScores: Record<string, number> = {};
+        this.players.forEach((player) => {
+          finalScores[player.id] = player.score;
+        });
+
+        const players = Array.from(this.players.values());
+
+        const winner =
+          players[0].score === players[1].score
+            ? "draw"
+            : players[0].score > players[1].score
+              ? players[0].id
+              : players[1].id;
+
+        this.stopGameLoop();
+
+        this.broadcast({
+          type: SERVER_MESSAGES.GAME_OVER,
+          payload: {
+            winner,
+            finalScores,
+          },
+        });
+
+        return;
+      }
+      const tagger = this.players.get(this.whoIsIt);
+      const tagged = this.getAllPlayers().find((p) => p.id !== this.whoIsIt);
+
+      const immunityOver =
+        Date.now() - this.lastTagTime > GAME_CONFIG.TAG_IMMUNITY_MS;
+
+      if (
+        immunityOver &&
+        tagger &&
+        tagged &&
+        this.checkCollision(tagger, tagged)
+      ) {
+        tagger.score += 1;
+        this.whoIsIt = tagged.id;
+
+        this.lastTagTime = Date.now();
+
+        this.broadcast({
+          type: SERVER_MESSAGES.TAG,
+          payload: {
+            tagger: tagger.id,
+            tagged: tagged.id,
+            newScores: {
+              [tagger.id]: tagger.score,
+              [tagged.id]: tagged.score,
+            },
+          },
+        });
+      }
+    }
+
     this.broadcast({
       type: SERVER_MESSAGES.STATE,
       payload: {

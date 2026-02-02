@@ -91,8 +91,6 @@ wss.on("connection", (socket: WebSocket) => {
             message.payload.y,
           );
     }
-
-    console.log("Received:", message);
   });
 
   socket.on("close", () => {
