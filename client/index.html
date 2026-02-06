@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,7 +9,32 @@
   <body>
     <div id="app">
       <canvas id="game-canvas"></canvas>
-      <div id="ui-overlay"></div>
+      <div id="ui-overlay">
+        <!-- Waiting Screen -->
+        <div id="waiting-screen" class="overlay-screen">
+          <h2>Waiting for opponent...</h2>
+          <p>Share this room code:</p>
+          <div id="room-code-display">----</div>
+        </div>
+
+        <!-- Countdown Overlay -->
+        <div id="countdown-overlay" class="overlay-screen">
+          <div id="countdown-number">3</div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="overlay-screen">
+          <h2 id="winner-text">You Win!</h2>
+          <div id="final-scores"></div>
+          <button id="rematch-btn">Rematch</button>
+        </div>
+
+        <!-- Disconnect Message -->
+        <div id="disconnect-screen" class="overlay-screen">
+          <h2>Opponent Disconnected</h2>
+          <p>Waiting for a new player...</p>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

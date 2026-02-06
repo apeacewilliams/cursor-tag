@@ -24,7 +24,14 @@ wss.on("connection", (socket: WebSocket) => {
 
   socket.on("message", (data) => {
     const text = data.toString();
-    const message: ClientMessage = JSON.parse(text);
+
+    let message: ClientMessage;
+    try {
+      message = JSON.parse(text);
+    } catch (error) {
+      console.warn("Invalid JSON received:", error);
+      return;
+    }
 
     if (message.type === CLIENT_MESSAGES.JOIN) {
       let roomCode = message.payload.roomCode;
@@ -74,22 +81,35 @@ wss.on("connection", (socket: WebSocket) => {
           },
         });
       }
-
-      if (room.isFull()) {
-        room.startGameLoop();
-      }
+      // Note: countdown is started automatically in room.addPlayer() when room becomes full
     }
 
     if (message.type === CLIENT_MESSAGES.INPUT) {
       const roomCode = socketToRoom.get(socket);
-      roomCode &&
-        roomManager
-          .getRoom(roomCode)
-          ?.updatePlayerPosition(
-            playerId,
-            message.payload.x,
-            message.payload.y,
-          );
+      if (!roomCode) return;
+
+      const room = roomManager.getRoom(roomCode);
+      if (!room) return;
+
+      // Only process input when game is actively playing
+      if (room.getStatus() === "playing") {
+        room.updatePlayerPosition(
+          playerId,
+          message.payload.x,
+          message.payload.y,
+        );
+      }
+    }
+
+    if (message.type === CLIENT_MESSAGES.REMATCH) {
+      const roomCode = socketToRoom.get(socket);
+      if (!roomCode) return;
+
+      const room = roomManager.getRoom(roomCode);
+
+      if (room && room.getStatus() === "ended") {
+        room.resetGame();
+      }
     }
   });
 
@@ -102,8 +122,7 @@ wss.on("connection", (socket: WebSocket) => {
     }
     const room = roomManager.getRoom(disconnectedPlayerRoom);
 
-    room?.stopGameLoop();
-
+    // removePlayer() handles stopping countdown/game loop and resetting status
     room?.removePlayer(playerId);
 
     room?.broadcast({

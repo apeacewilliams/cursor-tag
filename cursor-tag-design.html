@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursor Tag - Design Mockup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0f;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    .room-code {
+      font-size: 14px;
+      color: #666;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .room-code span {
+      color: #888;
+      background: #1a1a24;
+      padding: 4px 10px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .timer {
+      font-size: 24px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+    }
+
+    .scores {
+      display: flex;
+      gap: 24px;
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+    }
+
+    .score-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .score-dot.runner {
+      background: #3b82f6;
+      box-shadow: 0 0 12px #3b82f680;
+    }
+
+    .score-dot.chaser {
+      background: #ef4444;
+      box-shadow: 0 0 12px #ef444480;
+    }
+
+    .score-value {
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Arena */
+    .arena {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #12121a 0%, #0d0d14 100%);
+      border-radius: 12px;
+      border: 1px solid #1f1f2e;
+      overflow: hidden;
+    }
+
+    /* Grid pattern */
+    .arena::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(#ffffff05 1px, transparent 1px),
+        linear-gradient(90deg, #ffffff05 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Glow effect in corners */
+    .arena::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse at 0% 0%, #3b82f610 0%, transparent 50%),
+        radial-gradient(ellipse at 100% 100%, #ef444410 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* Players */
+    .player {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .player.runner {
+      left: 30%;
+      top: 60%;
+      background: radial-gradient(circle at 30% 30%, #60a5fa, #3b82f6);
+      box-shadow: 
+        0 0 30px #3b82f660,
+        0 0 60px #3b82f630,
+        inset 0 -2px 4px #1d4ed880;
+    }
+
+    .player.chaser {
+      left: 70%;
+      top: 35%;
+      background: radial-gradient(circle at 30% 30%, #f87171, #ef4444);
+      box-shadow: 
+        0 0 30px #ef444460,
+        0 0 60px #ef444430,
+        inset 0 -2px 4px #b9181880;
+    }
+
+    /* "IT" indicator */
+    .player.chaser::after {
+      content: 'IT';
+      position: absolute;
+      top: -24px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ef4444;
+      text-shadow: 0 0 10px #ef444480;
+    }
+
+    /* Trail effect */
+    .trail {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.3;
+      transform: translate(-50%, -50%);
+    }
+
+    .trail.runner {
+      background: #3b82f6;
+    }
+
+    .trail.chaser {
+      background: #ef4444;
+    }
+
+    .trail-1.runner { left: 28%; top: 62%; width: 28px; height: 28px; opacity: 0.2; }
+    .trail-2.runner { left: 26%; top: 64%; width: 20px; height: 20px; opacity: 0.1; }
+    
+    .trail-1.chaser { left: 68%; top: 37%; width: 28px; height: 28px; opacity: 0.2; }
+    .trail-2.chaser { left: 66%; top: 39%; width: 20px; height: 20px; opacity: 0.1; }
+
+    /* Status bar */
+    .status-bar {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 12px 0;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e80;
+    }
+
+    .status-dot.waiting {
+      background: #eab308;
+      box-shadow: 0 0 8px #eab30880;
+    }
+
+    /* Instructions overlay - for waiting state */
+    .instructions {
+      margin-top: 24px;
+      text-align: center;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .instructions kbd {
+      background: #1a1a24;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #888;
+      border: 1px solid #2a2a3a;
+    }
+
+    /* Tag flash effect */
+    .tag-flash {
+      position: absolute;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 40px #ef4444, 0 0 80px #ef4444;
+      opacity: 0;
+      animation: flash 0.8s ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes flash {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+
+    /* Collision radius indicator (debug/design view) */
+    .collision-radius {
+      position: absolute;
+      left: 70%;
+      top: 35%;
+      width: 70px;
+      height: 70px;
+      border: 1px dashed #ef444440;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Title for mockup */
+    h1 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 32px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Variants section */
+    .variants {
+      margin-top: 60px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .variants h2 {
+      font-size: 12px;
+      font-weight: 500;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+    }
+
+    .variant-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .variant-card {
+      background: #12121a;
+      border: 1px solid #1f1f2e;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .variant-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .variant-card p {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cursor Tag — Design Mockup</h1>
+  
+  <div class="game-container">
+    <div class="header">
+      <div class="room-code">Room<span>ABCD</span></div>
+      <div class="timer">1:42</div>
+      <div class="scores">
+        <div class="score">
+          <div class="score-dot runner"></div>
+          <span>You</span>
+          <span class="score-value">3</span>
+        </div>
+        <div class="score">
+          <div class="score-dot chaser"></div>
+          <span>Guest</span>
+          <span class="score-value">2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arena">
+      <!-- Trails -->
+      <div class="trail trail-2 runner"></div>
+      <div class="trail trail-1 runner"></div>
+      <div class="trail trail-2 chaser"></div>
+      <div class="trail trail-1 chaser"></div>
+      
+      <!-- Players -->
+      <div class="player runner"></div>
+      <div class="player chaser"></div>
+      
+      <!-- Debug: collision radius -->
+      <!-- <div class="collision-radius"></div> -->
+      
+      <!-- Tag flash (uncomment to see) -->
+      <!-- <div class="tag-flash">TAG!</div> -->
+    </div>
+
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-dot"></div>
+        <span>Connected</span>
+      </div>
+      <div class="status-item">
+        <span>Ping: 24ms</span>
+      </div>
+      <div class="status-item">
+        <span>30 ticks/s</span>
+      </div>
+    </div>
+
+    <div class="instructions">
+      Move your cursor to play · <kbd>ESC</kbd> to pause · <kbd>R</kbd> to rematch
+    </div>
+  </div>
+
+  <div class="variants">
+    <h2>UI States</h2>
+    <div class="variant-grid">
+      <div class="variant-card">
+        <h3>Waiting for Player</h3>
+        <p>Pulsing "waiting" indicator, shareable room link prominently displayed, optional "Play vs Bot" button.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Countdown</h3>
+        <p>3-2-1 centered overlay, players visible but frozen, builds anticipation before round starts.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Tag Event</h3>
+        <p>Brief screen flash, "TAG!" text burst, role colors swap with smooth transition animation.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Game Over</h3>
+        <p>Final scores overlay, winner highlight, "Rematch" and "New Room" buttons.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Disconnection</h3>
+        <p>Opponent cursor fades, "Opponent disconnected" message, option to wait or find new game.</p>
+      </div>
+      <div class="variant-card">
+        <h3>Mobile View</h3>
+        <p>Touch anywhere to set cursor target, slightly larger hit radius, simplified header.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

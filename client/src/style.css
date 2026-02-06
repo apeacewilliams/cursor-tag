@@ -11,7 +11,7 @@ body {
   overflow: hidden;
   background: #0a0a0f;
   font-family:
-    'Inter',
+    "Inter",
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
@@ -39,4 +39,52 @@ body {
   left: 0;
   width: 100%;
   pointer-events: none;
+}
+
+.overlay-screen {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  z-index: 10;
+}
+
+.overlay-screen.visible {
+  display: block;
+}
+
+#countdown-number {
+  font-size: 72px;
+  font-weight: bold;
+}
+
+#room-code-display {
+  font-family: monospace;
+  font-size: 32px;
+  background: #1a1a24;
+  padding: 12px 24px;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+#rematch-btn {
+  padding: 12px 32px;
+  font-size: 18px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 24px;
+}
+
+#rematch-btn:hover {
+  background: #2563eb;
+}
+
+#ui-overlay button {
+  pointer-events: auto;
 }

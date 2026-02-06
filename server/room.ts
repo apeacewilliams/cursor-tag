@@ -43,6 +43,10 @@ export class Room {
       this.whoIsIt = id;
     }
 
+    if (this.isFull()) {
+      this.startCountdown();
+    }
+
     return player;
   }
 
@@ -61,6 +65,13 @@ export class Room {
     this.players.delete(id);
     this.sockets.delete(id);
 
+    // Stop any running intervals when a player leaves
+    this.stopCountdown();
+    this.stopGameLoop();
+
+    // Reset to waiting state since we need 2 players
+    this.status = "waiting";
+
     if (this.whoIsIt === id) {
       if (this.players.size > 0) {
         const remainingPlayer = this.players.values().next().value as Player;
@@ -68,6 +79,13 @@ export class Room {
       } else {
         this.whoIsIt = null;
       }
+    }
+  }
+
+  stopCountdown(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
     }
   }
 
@@ -114,6 +132,33 @@ export class Room {
   }
 
   private gameLoopInterval: NodeJS.Timeout | null = null;
+  private countdownInterval: NodeJS.Timeout | null = null;
+
+  startCountdown(countdownValue: number = 10): void {
+    if (this.isFull()) {
+      this.status = "countdown";
+
+      this.countdownInterval = setInterval(() => {
+        this.broadcast({
+          type: SERVER_MESSAGES.COUNTDOWN,
+          payload: {
+            count: countdownValue,
+          },
+        });
+
+        countdownValue--;
+
+        if (countdownValue === 0) {
+          if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+          }
+          this.status = "playing";
+          this.startGameLoop();
+        }
+      }, 1000);
+    }
+  }
 
   startGameLoop(): void {
     this.gameLoopInterval = setInterval(() => {
@@ -126,6 +171,25 @@ export class Room {
       clearInterval(this.gameLoopInterval);
       this.gameLoopInterval = null;
     }
+  }
+
+  resetGame(): void {
+    this.stopGameLoop();
+    const players = Array.from(this.players.values());
+
+    players.forEach((player, index) => {
+      player.score = 0;
+      player.x =
+        index === 0
+          ? GAME_CONFIG.ARENA_WIDTH * 0.25
+          : GAME_CONFIG.ARENA_WIDTH * 0.75;
+      player.y = GAME_CONFIG.ARENA_HEIGHT / 2;
+    });
+
+    this.timeRemaining = GAME_CONFIG.ROUND_DURATION;
+    this.lastTagTime = 0;
+
+    this.startCountdown();
   }
 
   private tick(): void {
@@ -197,7 +261,7 @@ export class Room {
       type: SERVER_MESSAGES.STATE,
       payload: {
         players: this.getAllPlayers(),
-        whoIsIt: this.whoIsIt!,
+        whoIsIt: this.whoIsIt,
         timeRemaining: this.timeRemaining,
       },
     });
