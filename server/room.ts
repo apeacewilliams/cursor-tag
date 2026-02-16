@@ -134,7 +134,7 @@ export class Room {
   private gameLoopInterval: NodeJS.Timeout | null = null;
   private countdownInterval: NodeJS.Timeout | null = null;
 
-  startCountdown(countdownValue: number = 10): void {
+  startCountdown(countdownValue: number = GAME_CONFIG.COUNTDOWN_SECONDS): void {
     if (this.isFull()) {
       this.status = "countdown";
 

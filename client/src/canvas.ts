@@ -17,7 +17,7 @@ export class Renderer {
   drawPlayer(player: Player, isIt: boolean, isLocal: boolean): void {
     this.ctx.beginPath();
     this.ctx.arc(player.x, player.y, GAME_CONFIG.PLAYER_RADIUS, 0, Math.PI * 2);
-    this.ctx.fillStyle = isIt ? "#ef4444" : "#3b82f6";
+    this.ctx.fillStyle = isLocal ? "#3b82f6" : "#ef4444";
     this.ctx.fill();
 
     if (isLocal) {
@@ -52,13 +52,13 @@ export class Renderer {
     players.forEach((player) => {
       this.ctx.beginPath();
       this.ctx.arc(scoreX, scoreY, 6, 0, Math.PI * 2);
-      this.ctx.fillStyle = whoIsIt === player.id ? "#ef4444" : "#3b82f6";
+      this.ctx.fillStyle = localPlayerId === player.id ? "#3b82f6" : "#ef4444";
       this.ctx.fill();
 
       this.ctx.fillStyle = "#fff";
       this.ctx.fillText(
         `${player.id === localPlayerId ? "You" : "Opponent"} ${player.score}`,
-        scoreX + 40,
+        player.id === localPlayerId ? scoreX + 40 : scoreX + 80,
         scoreY + 5,
       );
 

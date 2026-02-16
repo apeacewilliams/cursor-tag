@@ -16,7 +16,7 @@ export const GAME_CONFIG = {
   TICK_RATE: 30, // Server ticks per second
   TICK_INTERVAL: 1000 / 30, // ~33ms
   ROUND_DURATION: 120, // Seconds per round
-  COUNTDOWN_SECONDS: 3,
+  COUNTDOWN_SECONDS: 10,
 
   // Network
   CLIENT_SEND_RATE: 30, // Client input sends per second

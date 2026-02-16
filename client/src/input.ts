@@ -14,6 +14,7 @@ export class Input {
   ) {}
 
   start(): void {
+    this.stop();
     this.mouseHandler = (event: MouseEvent) => {
       const rect = this.canvas.getBoundingClientRect();
       this.x = event.clientX - rect.left;

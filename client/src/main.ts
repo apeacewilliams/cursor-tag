@@ -11,7 +11,8 @@ let players: Player[] = [];
 let whoIsIt: string = "";
 let localPlayerId: string = "";
 let timeRemaining: number = 0;
-let gameStatus: "waiting" | "countdown" | "playing" | "ended" = "waiting";
+let gameStatus: "waiting" | "countdown" | "playing" | "ended" | "disconnected" =
+  "waiting";
 let countdownValue: number = 0;
 let winner: string | null = null;
 
@@ -66,6 +67,8 @@ function updateUI() {
         winnerText.textContent = "You Lose!";
       }
     }
+  } else if (gameStatus === "disconnected") {
+    disconnectScreen?.classList.add("visible");
   }
 }
 
@@ -128,7 +131,7 @@ network.onMessage((message: ServerMessage) => {
     winner = message.payload.winner;
   }
   if (message.type === "player_left") {
-    gameStatus = "waiting";
+    gameStatus = "disconnected";
   }
 });
 
